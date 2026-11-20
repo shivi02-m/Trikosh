@@ -1,4 +1,4 @@
-# Trikosh · Financial Intelligence Workspace
+# Trikosh · Every Saving has a Story
 
 A working expense tracker presented as a **client project delivered by Trikosh**, based on the supplied `Ops_Mind_AI_Codex_Build_Specification.pdf`.
 
