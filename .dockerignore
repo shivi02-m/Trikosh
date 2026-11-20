@@ -1,0 +1,21 @@
+# Allow-list: the build context contains ONLY the files the image needs.
+# Everything else is excluded by default, including:
+#   data/ and any *.db / *.db-wal / *.db-shm (real financial records), backups/, restore/
+#   .env and any credentials or keys, .git/, node_modules/, .npm-cache/, __pycache__/, .venv/,
+#   test-results/, tests/, .vscode/, documentation and PDF-derived text.
+*
+
+!server.py
+!accounts.py
+!workspace_features.py
+!business_expenses.py
+!backup_db.py
+!static/
+!static/**
+
+# Defence in depth: never include databases or caches even if they appear under an allowed path.
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/__pycache__
+**/*.pyc

@@ -1,0 +1,64 @@
+# Trikosh production stack: app (internal only) + Caddy (public HTTP/HTTPS with automatic certificates).
+# Usage on the VPS:  docker compose up -d --build
+# Settings come from the .env file next to this file (see .env.example).
+name: opsmind
+
+services:
+  app:
+    build: .
+    image: opsmind-app:latest
+    restart: unless-stopped
+    init: true
+    environment:
+      OPSMIND_DB: /data/opsmind.db
+      # The browser only ever reaches the app over HTTPS through Caddy.
+      OPSMIND_SECURE_COOKIE: "1"
+      # Safe because port 8000 is not published: only Caddy (on the private network below)
+      # can reach the app, and Caddy overwrites X-Real-IP on every request.
+      OPSMIND_TRUST_PROXY: "1"
+      # Password reset emails ("Forgot password?" appears only when all of these are set). See .env.example.
+      DOMAIN: ${DOMAIN:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    volumes:
+      - opsmind-data:/data          # SQLite database + backups; survives restarts and rebuilds
+    expose:
+      - "8000"                       # internal network only; no "ports:" entry on purpose
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  caddy:
+    image: caddy:2.11
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"               # HTTP/3
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env (for example DOMAIN=trikosh.com)}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data            # certificates and ACME account: keep this
+      - caddy-config:/config
+    networks:
+      - internal
+
+networks:
+  internal: {}
+
+volumes:
+  opsmind-data:
+  caddy-data:
+  caddy-config:

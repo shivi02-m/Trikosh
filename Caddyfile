@@ -1,0 +1,14 @@
+# Caddy reverse proxy for OpsMindAI.
+# {$DOMAIN} is replaced when Caddy starts, from the DOMAIN environment variable that
+# compose.yaml passes in from your .env file. Use a real hostname whose DNS A record points
+# at this server; Caddy then obtains a certificate automatically and redirects HTTP to HTTPS.
+{$DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy app:8000 {
+		# The app (OPSMIND_TRUST_PROXY=1) reads X-Real-IP for login rate limiting.
+		# Always overwrite it with the address of the client connected to Caddy, so a
+		# client-supplied X-Real-IP header can never be forwarded to the app.
+		header_up X-Real-IP {remote_host}
+	}
+}

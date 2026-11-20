@@ -1,0 +1,923 @@
+                                              Ops Mind AI
+
+                Financial Intelligence Workspace - Codex Build Specification
+
+Build one adaptive financial intelligence platform with three workspace types: Personal, Household, and
+Business. The product must go beyond transaction tracking. It should explain financial changes, forecast future
+spend, manage budgets and subscriptions, surface AI insights, and provide BI-style analysis with traceable
+evidence.
+
+Core product positioning
+
+Most expense trackers show where money went. Ops Mind AI should help users understand why spending changed, what
+is coming next, what deserves attention, and what action can be taken.
+
+1. Product Modes
+
+Workspace       Primary Users                 Core Purpose
+Personal        Individual / bachelor
+Household       Couple / family / dependents  Track income, expenses, budgets, subscriptions, savings goals, salary-cycle spending and
+Business        Company / team                personal AI insights.
+
+                                              Manage shared and private spending, members, events, festivals, goals, bills and
+                                              household financial intelligence.
+
+                                              Control spend, departments, approvals, policies, vendors, SaaS, budgets, projects, BI and
+                                              optional revenue/GTM analytics.
+
+2. Build Principles for Codex
+
+� Treat this document as the master product scope. Implement in phases rather than attempting all features in one change.
+� Use a workspace-aware data model from the start. Every financial record must belong to a workspace and obey access
+rules.
+� Keep AI server-side. AI responses must be grounded in stored workspace data and should expose evidence or linked
+source records.
+� Forecasts and recommendations must be labeled as estimates; never present them as guaranteed outcomes.
+� Separate regular financial behavior from exceptional/event spending so one-off purchases do not distort the baseline.
+� All dashboard values, charts and AI summaries must reconcile to underlying source records.
+� Business-mode revenue or pipeline analytics must distinguish association from causation.
+� Use synthetic demo data only for portfolio/demo workspaces.
+
+3. Suggested Architecture
+
+Layer           Recommendation
+Frontend        React + TypeScript; responsive SaaS dashboard; reusable workspace-aware components.
+Backend         FastAPI or Node.js API with authorization enforced server-side.
+Database        PostgreSQL with workspace_id on all scoped records; normalized dimension tables where useful.
+Authentication  Secure email/password or external auth provider; protected sessions; role-aware access.
+AI              LLM calls only through backend; retrieval limited to current workspace; structured outputs for classifications/insights.
+Charts          Interactive chart library with drill-down and filter propagation.
+File Storage    Secure receipt/invoice attachment storage with metadata in database.
+
+Ops Mind AI - Codex Build Specification                                                                                                   Page 1
+Layer    Recommendation
+Exports  CSV, XLSX and branded PDF; stable data dictionary for BI-ready output.
+
+Ops Mind AI - Codex Build Specification                                          Page 2
+4. Core Data Model
+
+Recommended entities: users, workspaces, workspace_members, profiles/preferences, household_members,
+departments, transactions, categories, tags, budgets, budget_lines, subscriptions, recurring_rules, events,
+savings_goals, upcoming_expenses, vendors, projects/clients/campaigns, expense_submissions, approval_steps,
+expense_policies, attachments, notifications, ai_insights, audit_log, import_batches, source_metadata,
+revenue_pipeline_records (Business/GTM phase).
+
+Every scoped entity should contain a workspace reference. Keep transaction classification fields structured enough to
+support regular vs exceptional, essential vs discretionary, member/team ownership, event/project attribution, recurring rules,
+and source/audit metadata.
+
+5. Implementation Phases
+
+Phase         Goal                       Major Scope
+Phase 1
+Phase 2       Foundation / MVP           Auth, workspace selector, data isolation, transaction core, categories, base budgets,
+Phase 3                                  Personal/Household onboarding, responsive shell.
+Phase 4
+              Usable Product             Workspace dashboards, Household members, events, subscriptions, goals, BI core, CSV/XLSX export,
+                                         Business departments/expense workflow.
+
+              Intelligence               AI categorization, receipt extraction, anomaly detection, Explain My Numbers, Ask Ops Mind,
+                                         forecasting, PDF reports, Business policies/vendors.
+
+              Advanced / Differentiation Scenario planner, insight inbox, subscription overlap, GTM/revenue analytics, saved BI views,
+                                                     advanced integrations, portfolio hardening.
+
+6. Feature Requirements
+
+The checklist contains 116 buildable features. Each item includes workspace, priority, phase, dependency and a minimum
+acceptance criterion.
+
+Platform
+
+ID        Workspace                      Feature / Requirement                                                                   Priority  Phase
+CORE-001  All                                                                                                                    P0        Phase 1
+                                         Authentication
+CORE-002 All                             Secure sign-up, login, logout and session handling.                                     P0        Phase 1
+                                         Dependency: None
+CORE-003 All                             Acceptance: User can create an account, sign in, sign out, and sessions are protected.  P1        Phase 2
+CORE-004 All
+CORE-005 All                             Workspace selector                                                                      P0        Phase 1
+CORE-006 All                             Choose Personal, Household or Business during onboarding/login.
+                                         Dependency: CORE-001                                                                    P1        Phase 2
+                                         Acceptance: User can select a workspace type and is routed to the correct onboarding
+                                         flow.                                                                                   P2        Phase 3
+
+                                         Multiple workspaces
+                                         Allow one user to own or join multiple workspaces and switch between them.
+                                         Dependency: CORE-002
+                                         Acceptance: Workspace switcher changes data context without another login.
+
+                                         Role-based access
+                                         Owner, member and view-only roles with workspace-specific permissions.
+                                         Dependency: CORE-003
+                                         Acceptance: Unauthorized users cannot edit restricted data.
+
+                                         Profile & preferences
+                                         Currency, locale, date format, fiscal/salary cycle and notification settings.
+                                         Dependency: CORE-001
+                                         Acceptance: Preferences persist and affect dashboard formatting.
+
+                                         Light / dark mode
+                                         Theme toggle saved per user.
+                                         Dependency: CORE-001
+                                         Acceptance: Theme persists between sessions.
+
+Ops Mind AI - Codex Build Specification                                                                                                             Page 3
+ID        Workspace                      Feature / Requirement                                                                  Priority  Phase
+CORE-007  All                                                                                                                   P0        Phase 1
+                                         Responsive UI
+CORE-008 All                             Desktop, tablet and mobile layouts.                                                    P1        Phase 3
+                                         Dependency: CORE-001
+CORE-009 All                             Acceptance: Core workflows remain usable at common mobile and desktop widths.          P2        Phase 4
+
+                                         Global search
+                                         Search transactions, merchants, vendors, events and subscriptions.
+                                         Dependency: CORE-001
+                                         Acceptance: Search returns relevant records across modules.
+
+                                         Command palette
+                                         Ctrl/Cmd+K actions for add expense, create budget, search and ask AI.
+                                         Dependency: CORE-008
+                                         Acceptance: Commands can be launched without navigating menus.
+
+Security
+
+ID        Workspace                      Feature / Requirement                                                                  Priority  Phase
+CORE-010  All                                                                                                                   P0        Phase 1
+                                         Workspace data isolation
+CORE-011 All                             Strict user/workspace-level separation in database and APIs.                           P0        Phase 1
+                                         Dependency: CORE-004
+CORE-012 All                             Acceptance: No user can retrieve another workspace's records.                          P1        Phase 3
+
+                                         Secure secrets and API handling
+                                         Secrets remain server-side in environment/secret storage.
+                                         Dependency: None
+                                         Acceptance: No AI/API secret is exposed in frontend bundles or responses.
+
+                                         Audit log framework
+                                         Record important user, approval and AI-assisted changes.
+                                         Dependency: CORE-004
+                                         Acceptance: Audit entries include actor, timestamp, action and affected record.
+
+Expenses
+
+ID        Workspace                      Feature / Requirement                                                                  Priority  Phase
+EXP-001   All                                                                                                                   P0        Phase 1
+                                         Manual expense entry
+EXP-002   All                            Create transaction with date, amount, merchant, category, notes and payment            P0        Phase 1
+                                         method.
+EXP-003   All                            Dependency: CORE-001                                                                   P0        Phase 1
+                                         Acceptance: A valid expense saves and immediately appears in dashboards.
+EXP-004   All                                                                                                                   P1        Phase 2
+                                         Quick add expense
+EXP-005   All                            Minimal amount/category/description flow optimized for mobile.                         P1        Phase 2
+                                         Dependency: EXP-001
+EXP-006   All                            Acceptance: Expense can be entered in a few interactions.                              P0        Phase 1
+
+                                         Categories & subcategories
+                                         Default categories plus user-created custom categories.
+                                         Dependency: EXP-001
+                                         Acceptance: Users can add, edit and use categories without breaking old transactions.
+
+                                         Tags
+                                         Attach searchable custom tags to transactions.
+                                         Dependency: EXP-001
+                                         Acceptance: Transactions can be filtered by one or more tags.
+
+                                         Payment method tracking
+                                         Cash, UPI, debit card, credit card, transfer, wallet and custom.
+                                         Dependency: EXP-001
+                                         Acceptance: Dashboard can group spend by payment method.
+
+                                         Regular vs exceptional
+                                         Mark transaction as regular, one-time, event, emergency, gift, travel or major
+                                         purchase.
+                                         Dependency: EXP-001
+                                         Acceptance: Analytics can exclude exceptional spend from normal baseline.
+
+Ops Mind AI - Codex Build Specification                                                                                                            Page 4
+ID       Workspace                       Feature / Requirement                                                              Priority  Phase
+EXP-007  All                                                                                                                P1        Phase 2
+                                         Essential vs discretionary
+EXP-008  All                             Classify transactions as need/essential or want/discretionary.                     P0        Phase 2
+                                         Dependency: EXP-001
+EXP-009  All                             Acceptance: Reports show essential vs discretionary totals.                        P1        Phase 2
+
+EXP-010  All                             Recurring transaction rules                                                        P1        Phase 3
+                                         Daily, weekly, monthly, quarterly, yearly and custom recurrence.
+EXP-011  All                             Dependency: EXP-001                                                                P1        Phase 3
+                                         Acceptance: Recurring entries generate or forecast correctly.
+EXP-012  All                                                                                                                P1        Phase 2
+                                         Transaction attachments
+                                         Attach receipt, invoice, bill or supporting file.
+                                         Dependency: EXP-001
+                                         Acceptance: Attachment is securely stored and linked to the transaction.
+
+                                         CSV/Excel import
+                                         Import transaction history with column mapping and preview.
+                                         Dependency: EXP-003
+                                         Acceptance: User can map fields, validate rows and import without duplicates.
+
+                                         Duplicate detection
+                                         Detect likely duplicate imported or manually entered expenses.
+                                         Dependency: EXP-010
+                                         Acceptance: Potential duplicates are flagged before confirmation.
+
+                                         Advanced filters
+                                         Filter by date, category, amount, member/team, merchant, event and payment
+                                         method.
+                                         Dependency: EXP-001
+                                         Acceptance: Filters combine correctly and can be cleared.
+
+AI Intelligence
+
+ID       Workspace                       Feature / Requirement                                                              Priority  Phase
+AI-001   All                                                                                                                P0        Phase 3
+                                         AI auto-categorization
+AI-002   All                             Suggest category/subcategory based on merchant, description and history.           P1        Phase 4
+                                         Dependency: EXP-003
+AI-003   All                             Acceptance: AI suggests a category with confidence and user can override it.       P0        Phase 3
+
+AI-004   All                             Learn from corrections                                                             P0        Phase 3
+                                         Use user category corrections to improve future suggestions.
+AI-005   All                             Dependency: AI-001                                                                 P0        Phase 3
+                                         Acceptance: Repeated merchants follow corrected category preference.
+AI-006   All                                                                                                                P0        Phase 3
+                                         Receipt / invoice extraction
+AI-007   All                             Extract merchant, date, amount, tax, items and likely category.                    P1        Phase 4
+                                         Dependency: EXP-009
+                                         Acceptance: Extracted fields are reviewable before saving.
+
+                                         Anomaly detection
+                                         Flag unusual amounts, merchants, category spikes and recurring-cost changes.
+                                         Dependency: EXP-001
+                                         Acceptance: Insight shows why a transaction or category is unusual.
+
+                                         Explain My Numbers
+                                         Click KPI/chart to receive grounded explanation of why it changed.
+                                         Dependency: BI-003
+                                         Acceptance: Explanation cites the transactions/periods used.
+
+                                         Ask Ops Mind
+                                         Natural-language questions grounded only in the current workspace data.
+                                         Dependency: EXP-001
+                                         Acceptance: Assistant answers supported questions and does not invent unavailable
+                                         data.
+
+                                         What Changed?
+                                         Compare two periods and summarize only material changes.
+                                         Dependency: AI-005
+                                         Acceptance: Comparison identifies top drivers and their amounts.
+
+Ops Mind AI - Codex Build Specification                                                                                                        Page 5
+ID       Workspace                       Feature / Requirement                                                                Priority  Phase
+AI-008   All                                                                                                                            Phase 3
+                                         Money Story                                                                          P0        Phase 4
+                                                                                                                                        Phase 4
+                                         Generate a monthly narrative summary of spend, changes, budget, savings and                    Phase 4
+                                                                                                                                        Phase 4
+                                         upcoming items.
+
+                                         Dependency: BUD-001
+
+                                         Acceptance: Summary matches underlying KPI values.
+
+AI-009   All                             AI Insight Inbox                                                                     P1
+
+                                         Central feed of anomalies, renewals, risks and recommendations with
+
+                                         review/dismiss/snooze/resolve.
+
+                                         Dependency: AI-004
+
+                                         Acceptance: Insight state changes persist and can be filtered.
+
+AI-010   All                             Confidence & evidence                                                                P1
+
+                                         Display data basis, comparison window and confidence where relevant.
+
+                                         Dependency: AI-004
+
+                                         Acceptance: User can open supporting transactions from an insight.
+
+AI-011   All                             Scenario planner                                                                     P1
+
+                                         Model 'what if' changes to rent, income, subscriptions, school fees or business
+
+                                         costs.
+
+                                         Dependency: BUD-005
+
+                                         Acceptance: Scenario does not overwrite real data and shows projected impact.
+
+AI-012   All                             Savings opportunities                                                                P1
+
+                                         Identify optional areas to review based on patterns and recurring costs.
+
+                                         Dependency: AI-004
+
+                                         Acceptance: Recommendation states evidence and potential range without guaranteeing
+
+                                         savings.
+
+Budgets
+
+ID       Workspace                       Feature / Requirement                                                                Priority  Phase
+BUD-001  All                                                                                                                  P0        Phase 1
+                                         Overall budget
+BUD-002  All                             Create a monthly workspace-level spending budget.                                    P0        Phase 2
+                                         Dependency: EXP-001
+BUD-003  All                             Acceptance: Dashboard shows budget, actual and remaining.                            P1        Phase 2
+
+BUD-004  All                             Category budgets                                                                     P1        Phase 3
+                                         Separate budgets for grocery, dining, travel, marketing, engineering, etc.
+BUD-005  All                             Dependency: BUD-001                                                                  P0        Phase 3
+                                         Acceptance: Each category shows actual, remaining and utilization percent.
+BUD-006  All                                                                                                                  P1        Phase 3
+                                         Budget status indicators
+                                         On Track, Watch, Near Limit, Exceeded thresholds.
+                                         Dependency: BUD-002
+                                         Acceptance: Status changes automatically with utilization.
+
+                                         Committed spend
+                                         Track upcoming known recurring/planned spend against budget.
+                                         Dependency: EXP-008
+                                         Acceptance: Committed spend appears separately from posted actuals.
+
+                                         Month-end forecast
+                                         Forecast end-of-period total using actuals, recurring expenses and planned
+                                         events.
+                                         Dependency: BUD-004
+                                         Acceptance: Forecast updates when inputs change and is labeled as an estimate.
+
+                                         Budget risk alerts
+                                         Warn when projected spend is likely to exceed budget.
+                                         Dependency: BUD-005
+                                         Acceptance: Alert shows expected overrun and main drivers.
+
+Subscriptions
+
+ID       Workspace                       Feature / Requirement                                                                Priority  Phase
+SUB-001  All                                                                                                                  P0        Phase 2
+                                         Subscription registry
+                                         Name, vendor, amount, cadence, renewal date, owner/member and status.
+                                         Dependency: EXP-001
+                                         Acceptance: Active subscriptions appear in dedicated dashboard.
+
+Ops Mind AI - Codex Build Specification                                                                                                          Page 6
+ID        Workspace                      Feature / Requirement                                                           Priority  Phase
+SUB-002   All                                                                                                            P1        Phase 3
+                                         Recurring subscription detection
+SUB-003   All                            Suggest subscriptions from repeated transactions.                               P1        Phase 2
+                                         Dependency: SUB-001
+SUB-004   All                            Acceptance: System proposes recurring matches for user confirmation.            P1        Phase 3
+
+SUB-005   All                            Renewal calendar                                                                P1        Phase 4
+                                         Show upcoming monthly, quarterly and annual renewals.
+SUB-006   All                            Dependency: SUB-001                                                             P1        Phase 3
+                                         Acceptance: Renewals display by date and amount.
+
+                                         Price increase detection
+                                         Detect when recurring vendor charge increases materially.
+                                         Dependency: SUB-002
+                                         Acceptance: Alert compares old and new recurring amount.
+
+                                         Duplicate / overlap review
+                                         Flag possible duplicate or overlapping subscriptions for review.
+                                         Dependency: SUB-001
+                                         Acceptance: System explains evidence; it never auto-cancels.
+
+                                         Subscription analytics
+                                         Monthly/annual cost, category share, trend and upcoming commitments.
+                                         Dependency: SUB-001
+                                         Acceptance: KPIs reconcile to active subscription records.
+
+Goals     Workspace                      Feature / Requirement                                                           Priority  Phase
+          Personal, Household                                                                                            P0        Phase 2
+ID        Personal, Household            Savings goals
+GOAL-001  Personal, Household            Create goal with target amount/date and current saved amount.                   P1        Phase 3
+          Personal, Household            Dependency: CORE-002
+GOAL-002  Personal, Household            Acceptance: Goal progress and remaining amount update correctly.                P0        Phase 2
+
+GOAL-003                                 Required monthly contribution                                                   P1        Phase 3
+                                         Calculate approximate monthly contribution needed for target date.
+GOAL-004                                 Dependency: GOAL-001                                                            P1        Phase 4
+                                         Acceptance: Calculation changes when target/date/current amount changes.
+GOAL-005
+                                         Upcoming expenses
+                                         Plan future insurance, school fees, travel, festivals, weddings and purchases.
+                                         Dependency: CORE-002
+                                         Acceptance: Upcoming items appear in dashboard/calendar and forecasts.
+
+                                         Future cash requirement
+                                         Aggregate planned expenses for next 30/60/90 days.
+                                         Dependency: GOAL-003
+                                         Acceptance: Totals match upcoming expense records.
+
+                                         Can I Afford It?
+                                         Show financial impact of a proposed purchase using available data and goals.
+                                         Dependency: GOAL-001
+                                         Acceptance: Response shows trade-offs/impact, not a directive to buy.
+
+Personal
+
+ID        Workspace                      Feature / Requirement                                                           Priority  Phase
+PER-001   Personal                                                                                                       P0        Phase 1
+                                         Personal onboarding
+PER-002   Personal                       Income, rent, EMI, dependents, savings target and recurring commitments.        P0        Phase 1
+                                         Dependency: CORE-002
+PER-003   Personal                       Acceptance: Personal dashboard initializes from onboarding inputs.              P1        Phase 3
+
+                                         Personal dashboard
+                                         Income, spend, remaining, savings rate, fixed/variable, subscriptions and
+                                         upcoming bills.
+                                         Dependency: PER-001
+                                         Acceptance: KPIs reconcile to personal transactions.
+
+                                         Salary-cycle reporting
+                                         Optional reporting period based on salary date rather than calendar month.
+                                         Dependency: PER-001
+                                         Acceptance: User can switch calendar month vs salary cycle.
+
+Ops Mind AI - Codex Build Specification                                                                                                     Page 7
+ID       Workspace                       Feature / Requirement                                                                Priority  Phase
+PER-004  Personal                                                                                                             P1        Phase 4
+                                         Safe-to-spend
+PER-005  Personal                        Estimate spendable amount until next salary after known commitments.                 P2        Phase 4
+                                         Dependency: PER-003
+PER-006  Personal                        Acceptance: Calculation subtracts scheduled commitments and is labeled estimate.     P2        Phase 4
+
+PER-007  Personal                        No-spend days                                                                        P1        Phase 3
+                                         Count days without discretionary purchases.
+                                         Dependency: EXP-007
+                                         Acceptance: Metric updates from transaction dates/classification.
+
+                                         Impulse purchase tagging
+                                         Allow user to mark purchases as unplanned/impulse for self-review.
+                                         Dependency: EXP-001
+                                         Acceptance: Monthly count and amount can be viewed.
+
+                                         Personal financial calendar
+                                         Salary, rent, EMI, bills, renewals, goals and planned events.
+                                         Dependency: GOAL-003
+                                         Acceptance: Calendar opens underlying record.
+
+Household
+
+ID       Workspace                       Feature / Requirement                                                                Priority  Phase
+HH-001   Household                                                                                                            P0        Phase 1
+                                         Household onboarding
+HH-002   Household                       Couple/family size/custom; adults, children, dependents and earning members.         P0        Phase 1
+                                         Dependency: CORE-002
+HH-003   Household                       Acceptance: Household structure is saved and editable.                               P1        Phase 3
+
+HH-004   Household                       Member management                                                                    P1        Phase 2
+                                         Add household members and assign expenses to individual/shared contexts.
+HH-005   Household                       Dependency: HH-001                                                                   P0        Phase 2
+                                         Acceptance: Member-specific and shared totals reconcile.
+HH-006   Household                                                                                                            P1        Phase 2
+                                         Member privacy controls
+HH-007   Household                       Shared, private, or amount-visible/details-private expense visibility.               P0        Phase 3
+                                         Dependency: HH-002
+HH-008   Household                       Acceptance: Member permissions are enforced in UI and API.                           P1        Phase 3
+
+HH-009   Household                       Household contributions                                                              P1        Phase 3
+                                         Track how much each earning member contributes to shared pool.
+                                         Dependency: HH-002
+                                         Acceptance: Contribution totals and member shares are visible.
+
+                                         Shared expense allocation
+                                         Mark who paid and whether an expense belongs to household or a member.
+                                         Dependency: HH-002
+                                         Acceptance: Paid-by and expense-owner dimensions remain separate.
+
+                                         Children/dependent expenses
+                                         Dedicated analysis for school, tuition, activities, health, clothing and allowance.
+                                         Dependency: HH-002
+                                         Acceptance: Dependent expenses can be filtered and summarized.
+
+                                         Household baseline
+                                         Calculate normal recurring/regular household cost separate from exceptional
+                                         spend.
+                                         Dependency: EXP-006
+                                         Acceptance: Baseline excludes or separately treats exceptional expenses.
+
+                                         Household Money Story
+                                         AI summary of family spend, member/category changes, goals and upcoming
+                                         commitments.
+                                         Dependency: AI-008
+                                         Acceptance: Narrative reconciles to household metrics.
+
+                                         Family calendar
+                                         Bills, school fees, birthdays, insurance, subscriptions, festivals and travel.
+                                         Dependency: GOAL-003
+                                         Acceptance: Calendar supports household filters.
+
+Events
+
+Ops Mind AI - Codex Build Specification                                                                                                          Page 8
+ID       Workspace                       Feature / Requirement                                                                Priority  Phase
+EVT-001  Personal, Household                                                                                                  P0        Phase 2
+                                         Special event creation
+EVT-002  Personal, Household             Festival, birthday, wedding, vacation, house move, school admission and custom       P0        Phase 2
+EVT-003  Personal, Household             events.                                                                              P1        Phase 2
+EVT-004  Personal, Household             Dependency: EXP-006                                                                  P1        Phase 3
+EVT-005  Personal, Household             Acceptance: Event has dates, budget, description and owner.                          P2        Phase 4
+
+                                         Event-linked expenses
+                                         Attach transactions to an event.
+                                         Dependency: EVT-001
+                                         Acceptance: Event total matches linked transactions.
+
+                                         Event budget
+                                         Set and monitor budget with remaining amount and percentage used.
+                                         Dependency: EVT-002
+                                         Acceptance: Budget state updates when event transactions change.
+
+                                         Festival intelligence
+                                         Dedicated festival breakdown such as gifts, clothes, food, decor and travel.
+                                         Dependency: EVT-002
+                                         Acceptance: Festival report separates event spend from normal monthly spend.
+
+                                         Year-over-year event comparison
+                                         Compare a festival/vacation/event with prior occurrence.
+                                         Dependency: EVT-002
+                                         Acceptance: Comparison displays prior/current totals and category drivers.
+
+Business
+
+ID       Workspace                       Feature / Requirement                                                                Priority  Phase
+BUS-001  Business                                                                                                                       Phase 1
+                                         Business onboarding                                                                  P0        Phase 1
+                                                                                                                                        Phase 2
+                                         Company, industry, currency, fiscal year, departments and base budget.
+                                                                                                                                        Phase 2
+                                         Dependency: CORE-002                                                                           Phase 2
+                                                                                                                                        Phase 3
+                                         Acceptance: Business workspace initializes with departments and fiscal settings.               Phase 2
+                                                                                                                                        Phase 3
+BUS-002  Business                        Department management                                                                P0        Phase 3
+
+                                         Create/edit departments and assign users/expenses/budgets.
+
+                                         Dependency: BUS-001
+
+                                         Acceptance: Department totals reconcile to assigned records.
+
+BUS-003  Business                        Business dashboard                                                                   P0
+
+                                         Revenue, operating spend, budgets, forecast, vendors, subscriptions and pending
+
+                                         approvals.
+
+                                         Dependency: BUS-001
+
+                                         Acceptance: All dashboard KPIs reconcile to business records.
+
+BUS-004  Business                        Employee expense submission                                                          P0
+
+                                         Employee submits expense with receipt and business context.
+
+                                         Dependency: EXP-009
+
+                                         Acceptance: Submission enters approval state and is visible to authorized approver.
+
+BUS-005  Business                        Approval workflow                                                                    P0
+
+                                         Configurable approver rules by amount, department or category.
+
+                                         Dependency: BUS-004
+
+                                         Acceptance: Expense follows correct approval route and captures decisions.
+
+BUS-006  Business                        Policy engine                                                                        P1
+
+                                         Configurable travel, meal, hotel and category limits.
+
+                                         Dependency: BUS-004
+
+                                         Acceptance: Out-of-policy expenses are flagged with rule explanation.
+
+BUS-007  Business                        Vendor registry                                                                      P0
+
+                                         Vendor spend, contract/renewal metadata, owner and department.
+
+                                         Dependency: EXP-001
+
+                                         Acceptance: Vendor page reconciles all linked transactions/subscriptions.
+
+BUS-008  Business                        Vendor intelligence                                                                  P1
+
+                                         Trend, concentration, price changes, renewals and AI review suggestions.
+
+                                         Dependency: BUS-007
+
+                                         Acceptance: Vendor insights link to underlying spend.
+
+BUS-009  Business                        SaaS seat/cost view                                                                  P1
+
+                                         Track SaaS tools, users/seats, department, cost and renewal.
+
+                                         Dependency: SUB-001
+
+                                         Acceptance: Cost per seat and total annualized SaaS spend are shown.
+
+Ops Mind AI - Codex Build Specification                                                                                                          Page 9
+ID       Workspace                       Feature / Requirement                                                           Priority  Phase
+BUS-010  Business                                                                                                        P0        Phase 3
+                                         Department budget intelligence
+BUS-011  Business                        Budget, actual, committed, forecast and variance by department.                 P1        Phase 3
+                                         Dependency: BUD-004
+BUS-012  Business                        Acceptance: Department budget table reconciles to expenses and planned spend.   P1        Phase 4
+
+BUS-013  Business                        Project/client cost allocation                                                  P2        Phase 4
+                                         Assign expense/revenue records to project, client, campaign or product.
+                                         Dependency: EXP-001
+                                         Acceptance: Project/client view totals assigned costs correctly.
+
+                                         Project/client profitability
+                                         Revenue minus direct/allocated costs with margin calculation.
+                                         Dependency: BUS-011
+                                         Acceptance: Profitability uses traceable revenue/cost inputs.
+
+                                         Cost per employee / team
+                                         Calculate selected cost categories per headcount.
+                                         Dependency: BUS-002
+                                         Acceptance: Metric states period and denominator used.
+
+Revenue & GTM
+
+ID       Workspace                       Feature / Requirement                                                           Priority  Phase
+GTM-001  Business                                                                                                        P1        Phase 4
+                                         Revenue data model
+GTM-002  Business                        Store/import revenue, pipeline or opportunity data separately from expenses.    P1        Phase 4
+                                         Dependency: BUS-001
+GTM-003  Business                        Acceptance: Revenue/pipeline records can be analyzed without mixing with spend  P1        Phase 4
+                                         transactions.
+GTM-004  Business                                                                                                        P2        Phase 4
+                                         CRM import/integration layer
+GTM-005  Business                        Prepare connectors/import mapping for Salesforce, HubSpot, Clarify or generic   P2        Phase 4
+                                         CRM CSV/API.
+                                         Dependency: GTM-001
+                                         Acceptance: Mapped CRM data lands in normalized records with source IDs.
+
+                                         GTM dashboard
+                                         Revenue, pipeline, marketing spend, sales spend, pipeline/spend and
+                                         revenue/spend views.
+                                         Dependency: GTM-001
+                                         Acceptance: Metrics use defined formulas and selected period.
+
+                                         Campaign cost-to-pipeline view
+                                         Compare campaign/channel spending with associated pipeline/revenue where
+                                         attribution exists.
+                                         Dependency: GTM-002
+                                         Acceptance: UI clearly distinguishes association from causation.
+
+                                         Pipeline forecasting display
+                                         Show imported/calculated pipeline forecasts with source and assumptions.
+                                         Dependency: GTM-001
+                                         Acceptance: Forecast is labeled by method/source and is not fabricated by AI.
+
+BI & Reporting
+
+ID       Workspace                       Feature / Requirement                                                           Priority  Phase
+BI-001   All                                                                                                                       Phase 2
+                                         BI dashboard                                                                    P0        Phase 2
+
+                                         Dedicated analytics area with workspace-specific KPIs.                                    Phase 2
+
+                                         Dependency: EXP-001
+
+                                         Acceptance: BI dashboard loads filtered metrics for current workspace.
+
+BI-002   All                             Interactive filters                                                             P0
+
+                                         Date, category, merchant/vendor, member/department, event/project and payment
+
+                                         method.
+
+                                         Dependency: BI-001
+
+                                         Acceptance: All charts and KPIs respond consistently to active filters.
+
+BI-003   All                             Core visualizations                                                             P0
+
+                                         Spend trend, category, budget vs actual, income/revenue vs expense, fixed vs
+
+                                         variable, savings.
+
+                                         Dependency: BI-001
+
+                                         Acceptance: Chart totals match tabular/source values.
+
+Ops Mind AI - Codex Build Specification                                                                                            Page 10
+ID       Workspace                       Feature / Requirement                                                              Priority  Phase
+BI-004   All                                                                                                                P1        Phase 3
+                                         Advanced visualizations
+BI-005   All                             Member/department, vendor, subscription, event, project profitability and daily    P0        Phase 3
+                                         heatmap.                                                                           P2        Phase 4
+BI-006   All                             Dependency: BI-001
+                                         Acceptance: Visuals render only when underlying workspace supports the dimension.  P1        Phase 2
+BI-007   All
+                                         Drill-down analytics
+                                         Click KPI/chart segment to inspect underlying records.
+                                         Dependency: BI-003
+                                         Acceptance: Drill-down respects active filters and reconciles to selected value.
+
+                                         Saved views
+                                         Save named filter/layout combinations such as Personal Review, Family Review,
+                                         CEO or Finance.
+                                         Dependency: BI-002
+                                         Acceptance: Saved view restores filters and selected widgets.
+
+                                         KPI definitions
+                                         Document formulas and definitions for each metric.
+                                         Dependency: BI-001
+                                         Acceptance: User/admin can view how KPI is calculated.
+
+Reports & Export
+
+ID       Workspace                       Feature / Requirement                                                              Priority  Phase
+REP-001  All                                                                                                                P0        Phase 2
+                                         CSV export
+REP-002  All                             Export filtered transaction/report data to CSV.                                    P0        Phase 2
+                                         Dependency: EXP-012
+REP-003  All                             Acceptance: Export matches active filters and includes expected columns.           P0        Phase 3
+
+REP-004  All                             Excel export                                                                       P1        Phase 3
+                                         Export structured report and raw data to XLSX.
+REP-005  All                             Dependency: EXP-012                                                                P1        Phase 4
+                                         Acceptance: Workbook opens correctly and values reconcile to app.
+REP-006  All                                                                                                                P2        Phase 4
+                                         PDF report
+                                         Generate branded PDF with summary, KPIs, charts and insights.
+                                         Dependency: BI-003
+                                         Acceptance: PDF renders cleanly and figures match dashboard data.
+
+                                         Report library
+                                         Monthly, annual, budget, subscription, event/household/business/vendor/project
+                                         reports.
+                                         Dependency: REP-003
+                                         Acceptance: Only relevant reports are offered for the workspace.
+
+                                         AI report generator
+                                         User requests a period/report and AI produces grounded executive narrative.
+                                         Dependency: AI-008
+                                         Acceptance: Generated narrative reconciles to included report figures.
+
+                                         Power BI/Tableau-ready output
+                                         Expose clean export/API/data model suitable for downstream BI tools.
+                                         Dependency: BI-007
+                                         Acceptance: Data dictionary and stable fields are available.
+
+Calendar & Alerts
+
+ID       Workspace                       Feature / Requirement                                                              Priority  Phase
+CAL-001  All                                                                                                                P1        Phase 3
+                                         Financial calendar
+CAL-002  All                             Show recurring bills, renewals, planned expenses, salary/revenue dates and         P1        Phase 3
+                                         events.
+                                         Dependency: EXP-008
+                                         Acceptance: Calendar items link to source records.
+
+                                         In-app notifications
+                                         Budget, renewal, bill, anomaly, forecast and approval notifications.
+                                         Dependency: CAL-001
+                                         Acceptance: Notification opens relevant record and can be marked read.
+
+Ops Mind AI - Codex Build Specification                                                                                               Page 11
+ID        Workspace                      Feature / Requirement                                                             Priority  Phase
+CAL-003   All                                                                                                              P2        Phase 4
+                                         Configurable alert preferences
+                                         Choose which alerts are enabled and optional thresholds.
+                                         Dependency: CAL-002
+                                         Acceptance: User preference suppresses disabled alert types.
+
+Integrations
+
+ID        Workspace                      Feature / Requirement                                                             Priority  Phase
+INT-001   Business                                                                                                                   Phase 4
+                                         Accounting-ready import/export                                                    P2
+                                                                                                                                     Phase 3
+                                         Prepare mapping for QuickBooks, Xero, NetSuite or generic accounting CSV/API.
+                                                                                                                                     Phase 3
+                                         Dependency: BUS-001
+
+                                         Acceptance: Normalized accounting fields retain source/reference IDs.
+
+INT-002   All                            Import validation & error handling                                                P1
+
+                                         Preview invalid dates, amounts, categories and duplicates before import.
+
+                                         Dependency: EXP-010
+
+                                         Acceptance: Bad rows are explained and can be corrected/skipped.
+
+INT-003   All                            Source & audit metadata                                                           P1
+
+                                         Track source system, source record ID, import batch and last update.
+
+                                         Dependency: EXP-010
+
+                                         Acceptance: Imported records remain traceable to source.
+
+Demo      Workspace                      Feature / Requirement                                                             Priority  Phase
+          Personal                                                                                                                   Phase 2
+ID                                       Bachelor demo workspace                                                           P0        Phase 2
+DEMO-001                                                                                                                             Phase 3
+
+                                         Six months of synthetic personal data with budgets, subscriptions and anomalies.            Phase 3
+
+                                         Dependency: PER-002                                                                         Phase 3
+
+                                         Acceptance: Demo showcases personal features without real user data.
+
+DEMO-002 Household                       Family of 4 demo workspace                                                        P0
+
+                                         Six months of synthetic household data including festival and school expenses.
+
+                                         Dependency: HH-002
+
+                                         Acceptance: Demo showcases shared, member and event analytics.
+
+DEMO-003 Business                        Business demo workspace                                                           P0
+
+                                         Synthetic company data with departments, vendors, SaaS, budgets and
+
+                                         approvals.
+
+                                         Dependency: BUS-003
+
+                                         Acceptance: Demo supports business and BI story end-to-end.
+
+DEMO-004 All                             Curated AI scenarios                                                              P0
+
+                                         Seed data for anomaly, renewal, budget risk, festival spike, duplicate SaaS and
+
+                                         forecast scenarios.
+
+                                         Dependency: AI-004
+
+                                         Acceptance: AI demo consistently finds the intended sample scenarios.
+
+DEMO-005 All                             Portfolio-safe demo mode                                                          P1
+
+                                         Clearly label synthetic data and allow reset to known baseline.
+
+                                         Dependency: DEMO-001
+
+                                         Acceptance: Demo can be reset without touching real workspaces.
+
+Ops Mind AI - Codex Build Specification                                                                                              Page 12
+7. Workspace-Specific UX
+
+Personal
+
+Default dashboard should emphasize income, total spend, remaining money, savings rate, fixed vs variable cost,
+subscriptions, upcoming bills, salary-cycle view, safe-to-spend estimate, goals and personal AI explanations.
+
+Household
+
+Default dashboard should emphasize shared vs individual spend, member contributions, children/dependent costs, regular
+household baseline, events/festivals, upcoming school/insurance costs, family goals and privacy-aware member visibility.
+
+Business
+
+Default dashboard should emphasize operating spend, department budgets, committed and forecast spend, vendor/SaaS
+cost, pending approvals, policy flags, project/client cost allocation, and optional revenue/pipeline analytics.
+
+8. Signature Ops Mind Differentiators
+
+� Three adaptive workspaces under one architecture.
+� Ask Ops Mind: natural-language analysis grounded in workspace data.
+� Explain My Numbers: click a KPI/chart and see the concrete drivers.
+� Regular vs Exceptional Spend Intelligence: festivals, weddings, travel and emergencies do not distort normal spending.
+� AI Insight Inbox: detect -> review -> dismiss/snooze/resolve.
+� Scenario Planner: model changes without modifying actual data.
+� BI Intelligence: filter -> chart -> drill-down -> AI explanation -> export.
+
+9. Definition of Done
+
+� Feature behavior matches acceptance criteria in the Excel checklist.
+� Authorization is enforced server-side for every workspace-scoped operation.
+� Numbers shown in KPI, chart, report and AI narrative reconcile to the same source data.
+� AI features fail safely when the data needed to answer is unavailable.
+� Forecasts/recommendations are clearly labeled estimates and show their basis.
+� Responsive behavior is verified on mobile and desktop.
+� Import/export flows handle invalid rows and preserve traceability.
+� Synthetic demo workspaces can be reset to a known state.
+� No real personal or client financial data is bundled in the repository.
+
+10. Codex Execution Instruction
+
+Do not implement the entire product in one pass. Start from the earliest incomplete P0 feature in the checklist.
+For each implementation batch: (1) state which feature IDs are being implemented, (2) inspect existing code
+before changing it, (3) preserve the workspace-aware architecture, (4) add/update tests where feasible, (5) run
+lint/build/tests, (6) summarize changed files and remaining dependencies, and (7) update checklist status only
+after acceptance criteria are met.
+
+Recommended first Codex task: implement CORE-001 through CORE-004 and CORE-010/CORE-011, then EXP-001
+through EXP-003. Once those foundations are stable, continue by Phase and Priority from the Excel checklist.
+
+Ops Mind AI - Codex Build Specification  Page 13
+
