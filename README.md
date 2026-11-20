@@ -2,7 +2,10 @@
 
 A working expense tracker presented as a **client project delivered by Trikosh**, based on the supplied `Ops_Mind_AI_Codex_Build_Specification.pdf`.
 
-The app includes Personal, Household and Business workspaces, a responsive dashboard, secure local accounts, transactions, monthly/category budgets, subscriptions, savings goals, analytics, evidence-backed local explanations, CSV export and six-month synthetic demos.
+The app includes Personal, Household and Business workspaces, a responsive dashboard, secure local accounts, transactions, monthly/category budgets, subscriptions, savings goals, analytics, evidence-backed local explanations, CSV export.
+
+Website: https://www.trikosh.com/login
+
 
 ## Run locally
 
