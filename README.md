@@ -65,19 +65,6 @@ Click **Expense categories** on the Business dashboard to browse the researched 
 
 See [BUSINESS_EXPENSE_RESEARCH.md](BUSINESS_EXPENSE_RESEARCH.md) for sources, categories, field definitions and boundaries. Tax is entered manually, not calculated or classified for deductibility by the app.
 
-## Try the client demo
-
-1. Open the demo and inspect the spending trend and category breakdown.
-2. Add an expense. The dashboard, budgets and insights recalculate from the saved record.
-3. Mark a transaction as an event or one-time expense and compare regular vs exceptional spending in Analytics.
-4. Click an insight's **Explore the details** link to inspect its supporting records.
-5. Switch between Personal and Household with the header switcher (Business is a separate account type).
-6. Change the month, filter transactions, then export the same selection as CSV.
-7. Manage recurring plans and savings goals. These are separate from posted transactions.
-8. Ask “How is my budget?” or “What is my forecast?” in Ask Trikosh.
-
-All demo data is synthetic. A demo reset only replaces that demo workspace's transactions, budgets, subscriptions and goals. Demo sessions last seven days; use a registered account for ongoing personal use. No password is assigned for interactive demo login.
-
 ## Technical design
 
 - **Backend:** Python standard library HTTP API; SQLite with foreign keys, transactions, WAL and integer minor-unit amounts.
