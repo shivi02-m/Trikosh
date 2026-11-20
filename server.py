@@ -81,6 +81,7 @@ def initialize():
         CREATE TABLE IF NOT EXISTS goals(id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE, name TEXT NOT NULL, target INTEGER NOT NULL CHECK(target > 0), saved INTEGER NOT NULL DEFAULT 0, due TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS audit_log(id TEXT PRIMARY KEY, workspace_id TEXT REFERENCES workspaces(id) ON DELETE CASCADE, user_id TEXT REFERENCES users(id), action TEXT NOT NULL, record_id TEXT, timestamp TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS login_attempts(key TEXT PRIMARY KEY, attempts INTEGER NOT NULL, expires TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS feedback(id TEXT PRIMARY KEY, user_id TEXT REFERENCES users(id) ON DELETE SET NULL, category TEXT NOT NULL, message TEXT NOT NULL, created_at TEXT NOT NULL);
         ''')
         features.migrate(db)
         business_fields.migrate(db, sys.modules[__name__])
@@ -505,6 +506,21 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/api/invites/preview' and method == 'GET':
             return result(accounts.preview_invite(sys.modules[__name__], db, query.get('token')))
         session = self.session(db)
+        if path == '/api/feedback' and method == 'POST':
+            data = self.body()
+            category = choice(data, 'category', ('suggestion', 'issue', 'other'))
+            message = string(data, 'message', limit=2000)
+            config = accounts.mail_config()
+            if not config:
+                raise APIError('Feedback email is unavailable. Please email admin@trikosh.com directly.', 503)
+            try:
+                accounts.send_email(config, 'admin@trikosh.com', f'Trikosh feedback: {category}',
+                                    f"From: {session['name']} (@{session['username']})\nEmail: {accounts.public_email(session['email']) or 'Not available'}\n\n{message}")
+            except Exception as error:
+                print(f'Feedback email failed: {type(error).__name__}: {error}', flush=True)
+                raise APIError('Could not send feedback. Please try again or email admin@trikosh.com directly.', 502)
+            db.execute('INSERT INTO feedback VALUES(?,?,?,?,?)', (uid(), session['user_id'], category, message, now()))
+            return result({'ok': True}, 201)
         user = session['user_id']
         if path == '/api/invites/accept' and method == 'POST':
             return result(accounts.accept_invite(sys.modules[__name__], db, session, self.body().get('token')))

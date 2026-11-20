@@ -139,7 +139,7 @@ function render(){
   const w=state.workspace;
   const current=navigation.find(n=>n[0]===state.page)?.[2]||'Settings';
   const initials=userInitials();
-  app.innerHTML=`<div class="app-shell"><aside class="sidebar" id="sidebar">${brand()}<div class="brand-caption">Har Rupee ki Apni Story</div>
+  app.innerHTML=`<div class="app-shell"><aside class="sidebar" id="sidebar">${brand()}
     <div class="workspace-control"><div class="workspace-icon">${icon(wsIcon(w.kind))}</div><div class="workspace-name" id="workspace-name" title="${esc(w.name)}">${esc(w.name)}</div>${state.workspaces.length>1?`<button type="button" class="icon-btn workspace-switch" data-action="switch-workspace" aria-label="Switch workspace" title="Switch workspace">${icon('repeat')}</button>`:''}</div>
     <div class="nav-label">WORKSPACE</div><nav aria-label="Main navigation">${navigation.slice(0,5).filter(n=>n[0]!=='goals'||w.kind!=='Business').map(navButton).join('')}</nav>
     <div class="nav-section"><div class="nav-label">INTELLIGENCE</div><nav aria-label="Intelligence">${navigation.slice(5).map(navButton).join('')}</nav></div>
@@ -148,7 +148,7 @@ function render(){
     <div class="profile"><div class="avatar">${esc(initials)}</div><div><div class="profile-name">${esc(state.user.name)}</div><div class="profile-sub">${w.demo?'Demo explorer':'@'+esc(state.user.username)+' · '+esc(w.role)}</div></div><button class="icon-btn" data-action="logout" aria-label="Log out" title="Log out">${icon('logout')}</button></div></div></aside>
     <div class="main-wrap"><header class="topbar"><button class="icon-btn mobile-menu" data-action="menu" aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="false">${icon('menu')}</button><div class="breadcrumb"><span>${esc(w.name)}</span>${icon('chevron')}<span>${esc(current)}</span></div>${viewSwitcher()}
     <div class="top-tools"><button class="search-button" data-action="search">${icon('search')}<span>Search transactions…</span><kbd>⌘ K</kbd></button><button class="icon-btn" data-action="theme" aria-label="Toggle light or dark theme">${icon('sun')}</button><button class="icon-btn" data-action="renewals" aria-label="Upcoming renewals">${icon('bell')}</button><span class="top-divider"></span>${profileMenu()}</div></header>
-    <main class="content" id="main-content" data-workspace-kind="${w.kind}" data-workspace-id="${w.id}">${pageHeading()}${workspaceTypeNav()}${w.demo?`<div class="demo-banner">${icon('info')}<span><strong>You’re exploring a demo workspace.</strong> All numbers are synthetic. Make yourself at home.</span><span class="banner-right">${icon('shield')} Portfolio-safe data</span></div>`:''}${pageContent()}<footer class="footer"><span><strong>Trikosh</strong> · <a class="contact-link" href="mailto:admin@trikosh.com">Contact us</a></span><span>${icon('shield').replace('class="icon"','class="icon" style="width:10px;height:10px;vertical-align:middle"')} Workspace-isolated · ${esc(w.currency)}</span></footer></main></div></div>`;
+    <main class="content" id="main-content" data-workspace-kind="${w.kind}" data-workspace-id="${w.id}">${pageHeading()}${workspaceTypeNav()}${w.demo?`<div class="demo-banner">${icon('info')}<span><strong>You’re exploring a demo workspace.</strong> All numbers are synthetic. Make yourself at home.</span><span class="banner-right">${icon('shield')} Portfolio-safe data</span></div>`:''}${pageContent()}<footer class="footer"><span><strong>Trikosh</strong> · <a class="contact-link" href="mailto:admin@trikosh.com">Contact us</a><button type="button" class="contact-link" data-action="feedback">Give feedback</button></span><span>${icon('shield').replace('class="icon"','class="icon" style="width:10px;height:10px;vertical-align:middle"')} Workspace-isolated · ${esc(w.currency)}</span></footer></main></div></div>`;
 }
 function userInitials(){const source=(state.user?.name||state.user?.username||'?').trim();return source.split(/\s+/).slice(0,2).map(n=>n[0]).join('').toUpperCase();}
 function viewSwitcher(){
@@ -305,6 +305,12 @@ function openModal(title,content,{wide=false,onSubmit}={}){
 }
 function closeModal(){modalRoot.innerHTML='';document.body.style.overflow='';lastFocus?.focus();}
 function formFooter(label){return `<div class="form-error" role="alert"></div><div class="modal-footer"><button type="button" class="btn" data-action="close-modal">Cancel</button><button class="btn primary" type="submit">${esc(label)}</button></div>`;}
+function feedbackForm(){
+  openModal('Share feedback',`<form><p class="modal-desc">Tell us what is working, what could be better, or report an issue.</p><div class="form-grid">${selectField('Type','category',[['suggestion','Suggestion'],['issue','Issue'],['other','Other']],'suggestion','full')}<label class="field full">Your feedback<textarea name="message" required maxlength="2000" rows="5" placeholder="Share your thoughts..."></textarea></label></div>${formFooter('Send feedback')}</form>`,{onSubmit:async e=>{
+    e.preventDefault();const form=e.currentTarget;
+    await submitForm(form,async()=>{await api('/api/feedback','POST',Object.fromEntries(new FormData(form)));closeModal();toast('Thank you for your feedback.');},'Sending...');
+  }});
+}
 function recordForm(resource,title,fields,record){openModal(title,`<form><div class="form-grid">${fields}</div>${formFooter(record?'Save changes':'Create '+title.replace(/^Add |^Create /,'').toLowerCase())}</form>`,{onSubmit:async e=>{
   e.preventDefault();const form=e.currentTarget,data=Object.fromEntries(new FormData(form));if(resource==='transactions'){const missing=householdChoiceMissing(form);if(missing){form.querySelector('.form-error').textContent=missing;return;}data.essential=form.elements.essential.checked;businessFormPayload(form,data);}
   const submitApproval=resource==='transactions'&&form.elements.submit_approval?.checked;delete data.submit_approval;
@@ -574,6 +580,7 @@ document.addEventListener('click',async e=>{
       case 'refresh-household':{target.disabled=true;try{await bootstrap();if(!state.workspace)toast('No household yet. Ask the owner to add @'+state.user.username+'.');}finally{if(target.isConnected)target.disabled=false;}break;}
       case 'resend-invite':resendInvite(id,target);break;
       case 'remove-member':confirmDialog(target.dataset.invite?'Cancel this invitation?':target.dataset.pending?'Remove saved contact?':'Remove this member?',target.dataset.invite?`The invitation to ${target.dataset.name} will stop working.`:target.dataset.pending?`The saved contact details for ${target.dataset.name} will be deleted.`:`@${target.dataset.name} will lose access to this workspace. Records they created stay in the workspace.`,()=>api(endpoint('members')+'/'+id,'DELETE'),'Remove member');break;
+      case 'feedback':feedbackForm();break;
       case 'theme':setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');break;
       case 'menu':{const open=document.getElementById('sidebar').classList.toggle('open');target.setAttribute('aria-expanded',String(open));break;}
       case 'add-transaction':transactionForm();break;case 'edit-transaction':transactionForm(id);break;

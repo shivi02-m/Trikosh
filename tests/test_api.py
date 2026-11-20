@@ -67,6 +67,27 @@ PASSWORD = 'a strong test password'
 
 
 class APITests(unittest.TestCase):
+    def test_feedback_is_emailed_and_delivery_failures_are_reported(self):
+        client = Client(self.base).signup(email='feedback@example.com')
+        OUTBOX.clear()
+        status, _, _ = client.call('/api/feedback', 'POST', {'category': 'suggestion', 'message': 'Make reports easier to find.'})
+        self.assertEqual(status, 201)
+        self.assertEqual(OUTBOX[-1]['to'], 'admin@trikosh.com')
+        self.assertIn('Make reports easier to find.', OUTBOX[-1]['text'])
+        self.assertIn('feedback@example.com', OUTBOX[-1]['text'])
+        status, _, _ = client.call('/api/feedback', 'POST', {'category': 'suggestion', 'message': '  '})
+        self.assertEqual(status, 400)
+        self.assertEqual(len(OUTBOX), 1)
+        old_send = accounts.send_email
+        try:
+            def fail(*args):
+                raise OSError('SMTP unavailable')
+            accounts.send_email = fail
+            status, _, _ = client.call('/api/feedback', 'POST', {'category': 'issue', 'message': 'Something broke.'})
+            self.assertEqual(status, 502)
+        finally:
+            accounts.send_email = old_send
+
     @classmethod
     def setUpClass(cls):
         cls.temp = tempfile.TemporaryDirectory()
